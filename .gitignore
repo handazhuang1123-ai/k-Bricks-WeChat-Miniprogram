@@ -1,0 +1,15 @@
+# 微信小程序相关
+.DS_Store
+node_modules/
+miniprogram_npm/
+
+# 开发工具生成的文件
+.vscode/
+.idea/
+
+# 临时文件
+*.log
+*.tmp
+
+# 用户数据
+project.private.config.json
