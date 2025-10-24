@@ -153,6 +153,45 @@ const app = getApp<IAppOption>()
 - 组件样式默认隔离（isolated）
 - **限制**：微信小程序不支持所有 CSS 特性（如 Flexbox 的 `gap` 属性在旧版本中不支持）
 
+## UI 组件库
+
+### TDesign 微信小程序（推荐）
+
+项目推荐使用 **TDesign** 作为 UI 组件库，这是腾讯开源的企业级设计体系。
+
+**为什么选择 TDesign：**
+- 腾讯官方企业级解决方案，由近 300 名设计师与开发者共同打造
+- 经过 500+ 个项目验证和锤炼，稳定可靠
+- 完美匹配项目的 TypeScript + SASS 技术栈
+- 提供统一的设计语言和视觉风格
+- 组件 API 设计规范，文档完善
+
+**官方资源：**
+- 官网：https://tdesign.tencent.com/
+- 小程序文档：https://tdesign.tencent.com/miniprogram/overview
+- 快速开始：https://tdesign.tencent.com/miniprogram/getting-started
+- 组件演示：https://tdesign.tencent.com/miniprogram/components/button
+- 设计资源：https://tdesign.tencent.com/source
+
+**安装方式：**
+```bash
+npm install tdesign-miniprogram --save
+```
+
+**在组件中使用：**
+```json
+{
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-cell": "tdesign-miniprogram/cell/cell"
+  }
+}
+```
+
+**备选方案：**
+- **WeUI**：微信官方 UI 库，提供原生视觉体验，支持扩展库引入（不占包体积）
+- **Vant Weapp**：有赞团队开发，组件丰富，社区活跃
+
 ## 调试
 
 1. **模拟器**：微信开发者工具内置
