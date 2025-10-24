@@ -2,47 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 项目管理机制
-
-### TODOLIST.md 更新规范
-
-项目根目录维护一个 `TODOLIST.md` 文件，用于跟踪项目进度和上下文管理。
-
-**更新时机：**
-每完成一个重要步骤或任务后，必须立即更新 TODOLIST.md
-
-**更新内容要求：**
-1. **Checkpoint 标记** - 记录完成的时间点和阶段
-2. **已完成工作小结** - 简明扼要地总结完成了什么
-3. **关键文件变更** - 列出新增、修改、删除的重要文件
-4. **待办事项** - 更新下一步计划和未完成的任务
-5. **注意事项** - 记录需要特别注意的问题或待解决的 bug
-
-**文件格式示例：**
-```markdown
-## [Checkpoint] 2025-01-15 14:30 - 功能模块名称
-
-### 已完成
-- 完成了 XXX 功能的开发
-- 修复了 YYY 页面的样式问题
-
-### 文件变更
-- 新增：`miniprogram/pages/xxx/xxx.ts`
-- 修改：`CLAUDE.md`（添加了 UI 组件库说明）
-
-### 下一步
-- [ ] 集成 TDesign 组件库
-- [ ] 开发用户登录功能
-
-### 注意事项
-- 某个 API 在 iOS 上存在兼容性问题，需要后续处理
-```
-
-**使用场景：**
-- 当你重新开始处理项目时，首先查看 TODOLIST.md 了解上次的进度
-- 每次完成一个阶段性工作后，更新 checkpoint 记录
-- 遇到需要分多次完成的任务时，记录当前进度和思路
-
 ## 项目概述
 
 K-Bricks Beta V1.0 是一个基于微信小程序原生框架开发的 TypeScript 项目。
