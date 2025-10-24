@@ -2,6 +2,47 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 项目管理机制
+
+### TODOLIST.md 更新规范
+
+项目根目录维护一个 `TODOLIST.md` 文件，用于跟踪项目进度和上下文管理。
+
+**更新时机：**
+每完成一个重要步骤或任务后，必须立即更新 TODOLIST.md
+
+**更新内容要求：**
+1. **Checkpoint 标记** - 记录完成的时间点和阶段
+2. **已完成工作小结** - 简明扼要地总结完成了什么
+3. **关键文件变更** - 列出新增、修改、删除的重要文件
+4. **待办事项** - 更新下一步计划和未完成的任务
+5. **注意事项** - 记录需要特别注意的问题或待解决的 bug
+
+**文件格式示例：**
+```markdown
+## [Checkpoint] 2025-01-15 14:30 - 功能模块名称
+
+### 已完成
+- 完成了 XXX 功能的开发
+- 修复了 YYY 页面的样式问题
+
+### 文件变更
+- 新增：`miniprogram/pages/xxx/xxx.ts`
+- 修改：`CLAUDE.md`（添加了 UI 组件库说明）
+
+### 下一步
+- [ ] 集成 TDesign 组件库
+- [ ] 开发用户登录功能
+
+### 注意事项
+- 某个 API 在 iOS 上存在兼容性问题，需要后续处理
+```
+
+**使用场景：**
+- 当你重新开始处理项目时，首先查看 TODOLIST.md 了解上次的进度
+- 每次完成一个阶段性工作后，更新 checkpoint 记录
+- 遇到需要分多次完成的任务时，记录当前进度和思路
+
 ## 项目概述
 
 K-Bricks Beta V1.0 是一个基于微信小程序原生框架开发的 TypeScript 项目。
@@ -152,6 +193,45 @@ const app = getApp<IAppOption>()
 - 全局样式在 `app.scss`
 - 组件样式默认隔离（isolated）
 - **限制**：微信小程序不支持所有 CSS 特性（如 Flexbox 的 `gap` 属性在旧版本中不支持）
+
+## UI 组件库
+
+### TDesign 微信小程序（推荐）
+
+项目推荐使用 **TDesign** 作为 UI 组件库，这是腾讯开源的企业级设计体系。
+
+**为什么选择 TDesign：**
+- 腾讯官方企业级解决方案，由近 300 名设计师与开发者共同打造
+- 经过 500+ 个项目验证和锤炼，稳定可靠
+- 完美匹配项目的 TypeScript + SASS 技术栈
+- 提供统一的设计语言和视觉风格
+- 组件 API 设计规范，文档完善
+
+**官方资源：**
+- 官网：https://tdesign.tencent.com/
+- 小程序文档：https://tdesign.tencent.com/miniprogram/overview
+- 快速开始：https://tdesign.tencent.com/miniprogram/getting-started
+- 组件演示：https://tdesign.tencent.com/miniprogram/components/button
+- 设计资源：https://tdesign.tencent.com/source
+
+**安装方式：**
+```bash
+npm install tdesign-miniprogram --save
+```
+
+**在组件中使用：**
+```json
+{
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-cell": "tdesign-miniprogram/cell/cell"
+  }
+}
+```
+
+**备选方案：**
+- **WeUI**：微信官方 UI 库，提供原生视觉体验，支持扩展库引入（不占包体积）
+- **Vant Weapp**：有赞团队开发，组件丰富，社区活跃
 
 ## 调试
 
