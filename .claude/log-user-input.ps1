@@ -48,9 +48,8 @@ try {
         $userMessage = "[空消息]"
     }
 
-    # 构建日志条目（格式：时间戳 | 用户输入）
-    $separator = "`n" + ("=" * 80) + "`n"
-    $logEntry = "${separator}[$timestamp]`n$userMessage"
+    # 构建日志条目（格式：箭头 + 时间戳 + 用户输入）
+    $logEntry = "`n→ $timestamp`n$userMessage"
 
     # 使用 UTF8 编码写入日志文件（无 BOM，避免乱码）
     $utf8NoBom = New-Object System.Text.UTF8Encoding $false

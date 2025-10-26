@@ -2,6 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## ⚠️ 核心约束（违反即为严重错误）
+
+### 1. 配置文件/密钥处理
+- 看到文件名包含 `.local`、`.env`、`secret`、`token`、`key`
+- 或文件内容包含密钥、token、密码
+- **第一反应**：检查是否应在 .gitignore 中
+- **禁止**：直接删除敏感内容
+
+### 2. 不要编辑编译产物
+- 本项目 `.ts` 自动编译为 `.js`，`.scss` 自动编译为 `.wxss`
+- **只编辑源文件**（.ts/.scss）
+- **不要编辑编译产物**（.js/.wxss）
+- 编译产物会在保存源文件时被微信开发者工具自动覆盖
+
+### 3. setData 性能规则
+微信小程序 setData 有严格性能限制：
+- ❌ 不要在循环/定时器中频繁调用
+- ❌ 不要传递超过 1MB 的数据
+- ✅ 优先使用路径更新：`this.setData({ "obj.key": value })`
+- ✅ 批量更新多个字段
+
+### 4. 架构/技术选型决策
+涉及状态管理、UI库、数据存储、性能优化方案时：
+- **必须**：列举至少 2 种方案 + 优缺点对比
+- **可选**：提示用户使用 `/think` 查看详细分析
+
+---
+
 ## 项目概述
 
 K-Bricks Beta V1.0 是一个基于微信小程序原生框架开发的 TypeScript 项目。
