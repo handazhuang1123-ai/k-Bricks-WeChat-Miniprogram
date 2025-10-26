@@ -1,70 +1,72 @@
 # User Input Logger for Claude Code
-# 记录用户的所有对话输入，用于后续分析和优化对话方式
+# Records user message inputs with timestamp
 
 param()
 
-$ErrorActionPreference = "SilentlyContinue"
-
-# 设置控制台编码为 UTF-8，确保中文正确处理
+# Set console encoding to UTF-8 for proper Chinese character handling
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
-$logFile = Join-Path $PSScriptRoot "user-inputs.log"
-$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$ErrorActionPreference = "SilentlyContinue"
+$logFile = Join-Path $PSScriptRoot "user-input.log"
+
+# Create UTF-8 encoding without BOM to prevent garbled Chinese characters
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
 
 try {
-    # 读取所有 stdin 输入
+    # Read all stdin input
     $inputLines = @()
     while ($null -ne ($line = [Console]::ReadLine())) {
         $inputLines += $line
     }
     $inputData = $inputLines -join "`n"
 
-    # 提取用户输入内容
-    $userMessage = ""
-
     if (-not [string]::IsNullOrWhiteSpace($inputData)) {
         try {
             $json = $inputData | ConvertFrom-Json
+            $userMessage = ""
 
-            # 尝试提取用户消息
-            if ($json.prompt) {
-                $userMessage = $json.prompt
-            } elseif ($json.message) {
+            # Extract user message from various possible fields
+            if ($json.message) {
                 $userMessage = $json.message
+            } elseif ($json.prompt) {
+                $userMessage = $json.prompt
             } elseif ($json.text) {
                 $userMessage = $json.text
             } elseif ($json.content) {
                 $userMessage = $json.content
             } else {
-                # 如果没有找到明确字段，使用整个 JSON
+                # Fallback to raw input
                 $userMessage = $inputData
             }
+
+            # Get timestamp
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+
+            # Build lightweight log entry
+            # Format: → timestamp
+            #         user message content
+            #         (blank line)
+            $logEntry = "→ $timestamp`n$userMessage`n"
+
+            # Write to log with UTF8 encoding without BOM (ensures Chinese characters display correctly)
+            [System.IO.File]::AppendAllText($logFile, $logEntry, $utf8NoBom)
+
         } catch {
-            # JSON 解析失败，使用原始输入
-            $userMessage = $inputData
+            # If JSON parsing fails, log raw input
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+            $logEntry = "→ $timestamp`n$inputData`n"
+            [System.IO.File]::AppendAllText($logFile, $logEntry, $utf8NoBom)
         }
-    } else {
-        $userMessage = "[空消息]"
     }
-
-    # 构建日志条目（格式：箭头 + 时间戳 + 用户输入）
-    $logEntry = "`n→ $timestamp`n$userMessage"
-
-    # 使用 UTF8 编码写入日志文件（无 BOM，避免乱码）
-    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-    [System.IO.File]::AppendAllText($logFile, $logEntry, $utf8NoBom)
 
 } catch {
-    # 静默失败 - 不要阻塞对话
-    try {
-        $errorLog = "`n[$timestamp] [错误] $($_.Exception.Message)"
-        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-        [System.IO.File]::AppendAllText($logFile, $errorLog, $utf8NoBom)
-    } catch {
-        # 完全静默
-    }
+    # Silently fail - don't block user input
+    # Optionally log error for debugging
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $errorLog = "→ $timestamp [ERROR]`n$($_.Exception.Message)`n"
+    [System.IO.File]::AppendAllText($logFile, $errorLog, $utf8NoBom)
 }
 
-# 总是成功退出
+# Always exit successfully
 exit 0
