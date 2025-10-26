@@ -44,10 +44,10 @@ try {
             $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
             # Build lightweight log entry
-            # Format: → timestamp
+            # Format: ----- timestamp -----
             #         user message content
             #         (blank line)
-            $logEntry = "→ $timestamp`n$userMessage`n"
+            $logEntry = "----- $timestamp -----`n$userMessage`n`n"
 
             # Write to log with UTF8 encoding without BOM (ensures Chinese characters display correctly)
             [System.IO.File]::AppendAllText($logFile, $logEntry, $utf8NoBom)
@@ -55,7 +55,7 @@ try {
         } catch {
             # If JSON parsing fails, log raw input
             $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-            $logEntry = "→ $timestamp`n$inputData`n"
+            $logEntry = "----- $timestamp -----`n$inputData`n`n"
             [System.IO.File]::AppendAllText($logFile, $logEntry, $utf8NoBom)
         }
     }
@@ -64,7 +64,7 @@ try {
     # Silently fail - don't block user input
     # Optionally log error for debugging
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $errorLog = "→ $timestamp [ERROR]`n$($_.Exception.Message)`n"
+    $errorLog = "----- $timestamp [ERROR] -----`n$($_.Exception.Message)`n`n"
     [System.IO.File]::AppendAllText($logFile, $errorLog, $utf8NoBom)
 }
 
