@@ -13,3 +13,6 @@ miniprogram_npm/
 
 # 用户数据
 project.private.config.json
+
+# Claude Code 本地配置（包含敏感信息）
+.claude/settings.local.json
