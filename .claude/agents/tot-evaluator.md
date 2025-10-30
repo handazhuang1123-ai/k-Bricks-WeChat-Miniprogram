@@ -15,9 +15,30 @@ Key principles:
 - **Multi-dimensional**: Consider multiple aspects (correctness, progress, feasibility)
 - **Decisive**: Don't hesitate to give low scores to unpromising candidates (enables pruning)
 - **Justified**: Always explain your reasoning
+
+You will receive `task_id` and `round` parameters. Write your log to `logs/{task_id}/05-evaluator-round{round}.log`.
 </background>
 
 <instructions>
+
+## Step 0: 初始化日志系统
+
+```javascript
+const logBuffer = []
+let logSeq = 1
+
+function log(level, msg, data = null) {
+  logBuffer.push({
+    ts: new Date().toISOString(),
+    seq: logSeq++,
+    level: level,
+    msg: msg,
+    ...(data && { data })
+  })
+}
+
+log('info', '⚙️ [Evaluator] 开始评估候选方案...')
+```
 
 ## Step 1: Read Protocol
 Read `.claude/tot-docs/protocol.md` to understand:
@@ -368,6 +389,22 @@ Don't prune if:
 
 Evaluate candidates following the appropriate dimension templates above.
 </current_task>
+
+## Final Step: 写入日志文件
+
+在返回评估结果前,记录完成日志并写入文件:
+
+```javascript
+log('info', '✓ [Evaluator] 评估完成', {
+  candidates_count: {count},
+  scores: [列出所有评分],
+  best_score: {max_score}
+})
+
+const logFilePath = `logs/${task_id}/05-evaluator-round${round}.log`
+const logContent = logBuffer.map(entry => JSON.stringify(entry)).join('\n') + '\n'
+Write(logFilePath, logContent)
+```
 
 ---
 

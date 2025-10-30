@@ -457,5 +457,174 @@
 
 ---
 
-**协议版本**: 1.0
-**最后更新**: 2025-10-28
+## 日志规范
+
+### 日志目录结构
+
+每次执行 `/tot` 命令时,在 `logs/` 目录下创建独立的任务文件夹:
+
+```
+logs/
+└── tot-{YYYYMMDD}-{HHMMSS}-{短ID}/
+    ├── 00-task-info.json           # 任务元信息
+    ├── 01-orchestrator.log         # Orchestrator 日志
+    ├── 02-decomposer.log           # Decomposer 日志
+    ├── 03-explorer.log             # Explorer 日志
+    ├── 04-generator-round1.log     # Generator 第1轮
+    ├── 05-evaluator-round1.log     # Evaluator 第1轮
+    ├── 06-generator-round2.log     # Generator 第2轮(如果有)
+    ├── 07-evaluator-round2.log     # Evaluator 第2轮(如果有)
+    ├── 08-synthesizer.log          # Synthesizer 日志
+    └── 99-merged-timeline.log      # 整合后的时间线
+```
+
+### 任务文件夹命名
+
+```
+tot-{日期}-{时间}-{短ID}
+
+示例: tot-20251030-143056-a3f7b2
+      ├─ 日期: YYYYMMDD
+      ├─ 时间: HHMMSS
+      └─ 短ID: 6位随机字符(用于避免冲突)
+```
+
+### 日志文件命名
+
+```
+{序号}-{agent名称}-{可选轮次}.log
+
+序号: 两位数字,保证文件排序
+agent名称: orchestrator, decomposer, explorer, generator, evaluator, synthesizer
+轮次: 如果同一个 agent 被多次调用,添加 round1, round2, round3...
+```
+
+### 任务元信息格式
+
+`00-task-info.json`:
+
+```json
+{
+  "task_id": "tot-20251030-143056-a3f7b2",
+  "problem": "用户的原始问题",
+  "task_type": "math_reasoning|creative_writing|planning|architecture_design|debugging",
+  "start_time": "2025-10-30T14:30:56.123Z",
+  "end_time": "2025-10-30T14:32:22.789Z",
+  "duration_ms": 86666,
+  "search_config": {
+    "strategy": "BFS|DFS",
+    "max_depth": 2,
+    "branching_factor": 4,
+    "pruning_threshold": 6.5
+  },
+  "final_stats": {
+    "total_nodes": 9,
+    "llm_calls": 4,
+    "best_score": 8.5
+  }
+}
+```
+
+### 日志条目格式
+
+每个 agent 的日志文件使用 **JSON Lines** 格式(每行一个 JSON 对象):
+
+```jsonl
+{"ts":"2025-10-30T14:30:56.123Z","seq":1,"level":"info","msg":"🔍 [Explorer] 初始化完成","data":{"strategy":"BFS","depth":2}}
+{"ts":"2025-10-30T14:30:56.456Z","seq":2,"level":"progress","msg":"⏳ [Explorer - 第1层] 准备扩展 1 个节点"}
+{"ts":"2025-10-30T14:31:02.789Z","seq":3,"level":"progress","msg":"✓ [Generator] 已生成 4 个候选","data":{"candidates":["3个Skills","5个Skills","7个Skills","动态划分"]}}
+```
+
+**字段说明**:
+- `ts` (必需): ISO 8601 时间戳,精确到毫秒
+- `seq` (必需): 序列号,从 1 开始递增,用于同一毫秒内的排序
+- `level` (必需): 日志级别
+  - `info`: 一般信息(如初始化完成)
+  - `progress`: 进度更新(如每层开始/完成)
+  - `warning`: 警告(如某个节点评分过低)
+  - `error`: 错误(如 LLM 调用失败)
+- `msg` (必需): 用户可读的消息,包含 emoji 和格式化
+- `data` (可选): 结构化数据,用于事后分析
+
+### Agent 日志写入规范
+
+**重要**: 每个 agent 应在内部收集日志条目,执行完成后**一次性写入**日志文件,避免频繁的文件操作。
+
+**日志收集模式**(伪代码):
+
+```javascript
+// Agent 执行开始时初始化
+const logBuffer = []
+let logSeq = 1
+
+function log(level, msg, data = null) {
+  logBuffer.push({
+    ts: new Date().toISOString(),
+    seq: logSeq++,
+    level: level,
+    msg: msg,
+    ...(data && { data })
+  })
+}
+
+// 执行过程中收集日志
+log('info', '🔍 [Explorer] 初始化完成', {strategy: 'BFS'})
+log('progress', '⏳ [Explorer - 第1层] 准备扩展 1 个节点')
+// ...
+
+// Agent 执行结束时一次性写入
+const logContent = logBuffer.map(entry => JSON.stringify(entry)).join('\n') + '\n'
+Write(logFilePath, logContent)
+```
+
+### 日志整合规范
+
+`/tot` 命令在执行完成后负责整合所有日志:
+
+1. 读取任务文件夹下所有 `.log` 文件(除了 `99-merged-timeline.log`)
+2. 解析每行 JSON,提取时间戳和序列号
+3. 按 `(ts, seq)` 排序
+4. 生成人类可读的时间线,写入 `99-merged-timeline.log`
+
+**整合后的时间线格式**:
+
+```
+# ToT 执行时间线
+
+任务 ID: tot-20251030-143056-a3f7b2
+问题: 微信小程序应该制作几个 Skills
+
+任务开始: 2025-10-30T14:30:56.123Z
+
+[14:30:56.123] [01-orchestrator] 📋 问题类型: architecture_design
+[14:30:56.456] [01-orchestrator] 🔍 配置: BFS, 分支=4, 深度=2, 阈值=6.5
+[14:30:57.789] [02-decomposer] 📋 开始分解问题...
+[14:31:02.123] [02-decomposer] ✅ 分解完成
+         数据: {"thought_granularity":"Skills功能设计","depth_estimate":2}
+[14:31:03.456] [03-explorer] 🔍 [Explorer] 初始化完成
+...
+
+任务结束: 2025-10-30T14:32:22.789Z
+总耗时: 1分26秒
+
+---
+
+统计信息:
+- 总日志条目: 45 条
+- Agent 调用次数: 6
+- LLM 调用次数: 4 次
+```
+
+### 日志文件管理
+
+- **保留策略**: 日志文件默认永久保留,用户可手动删除旧日志
+- **文件大小**: 单个日志文件通常 < 100KB,整个任务文件夹 < 500KB
+- **查看方式**:
+  - 快速查看: 直接打开 `99-merged-timeline.log`
+  - 详细分析: 打开具体的 agent 日志文件
+  - 编程分析: 解析 JSON Lines 格式进行数据分析
+
+---
+
+**协议版本**: 1.1
+**最后更新**: 2025-10-30

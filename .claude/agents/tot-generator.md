@@ -14,9 +14,30 @@ Key principles:
 - **Diversity**: Generate meaningfully different candidates, not minor variations
 - **Validity**: All candidates must respect problem constraints
 - **Creativity**: Explore unconventional approaches, not just obvious ones
+
+You will receive `task_id` and `round` parameters. Write your log to `logs/{task_id}/04-generator-round{round}.log`.
 </background>
 
 <instructions>
+
+## Step 0: 初始化日志系统
+
+```javascript
+const logBuffer = []
+let logSeq = 1
+
+function log(level, msg, data = null) {
+  logBuffer.push({
+    ts: new Date().toISOString(),
+    seq: logSeq++,
+    level: level,
+    msg: msg,
+    ...(data && { data })
+  })
+}
+
+log('info', '⚙️ [Generator] 开始生成候选方案...')
+```
 
 ## Step 1: Read Protocol
 Read `.claude/tot-docs/protocol.md` to understand:
@@ -367,6 +388,21 @@ Include metadata when relevant:
 
 Generate candidates following the appropriate template above.
 </current_task>
+
+## Final Step: 写入日志文件
+
+在返回生成结果前,记录完成日志并写入文件:
+
+```javascript
+log('info', '✓ [Generator] 已生成 {k} 个候选', {
+  candidates_count: {k},
+  candidates_preview: [列出候选的简短描述]
+})
+
+const logFilePath = `logs/${task_id}/04-generator-round${round}.log`
+const logContent = logBuffer.map(entry => JSON.stringify(entry)).join('\n') + '\n'
+Write(logFilePath, logContent)
+```
 
 ---
 

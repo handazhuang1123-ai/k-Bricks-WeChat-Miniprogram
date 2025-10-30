@@ -174,6 +174,108 @@ If ToT produces unexpected results:
 
 **Your Problem**: {{USER_INPUT}}
 
-Invoking **tot-orchestrator** to begin Tree of Thoughts exploration...
+---
+
+## Execution
+
+### Step 1: 初始化日志系统
+
+1. 生成任务 ID:
+   ```
+   task_id = tot-{YYYYMMDD}-{HHMMSS}-{6位随机字符}
+   示例: tot-20251030-143056-a3f7b2
+   ```
+
+2. 创建日志目录:
+   ```
+   mkdir logs/{task_id}/
+   ```
+
+3. 写入任务元信息 `logs/{task_id}/00-task-info.json`:
+   ```json
+   {
+     "task_id": "{task_id}",
+     "problem": "{{USER_INPUT}}",
+     "start_time": "{ISO 8601 时间戳}",
+     "status": "running"
+   }
+   ```
+
+### Step 2: 调用 ToT Orchestrator
+
+调用 **tot-orchestrator** agent,传入:
+- 用户问题: {{USER_INPUT}}
+- 任务 ID: {task_id}
+
+Orchestrator 将协调其他 agent 完成任务,每个 agent 会将日志写入 `logs/{task_id}/` 目录。
+
+### Step 3: 整合日志并生成时间线
+
+当 orchestrator 完成后,执行以下步骤:
+
+1. **读取所有日志文件**:
+   - 使用 Glob 工具: `logs/{task_id}/*.log`
+   - 排除 `99-merged-timeline.log`
+
+2. **解析并排序日志条目**:
+   - 读取每个 .log 文件的所有行
+   - 解析 JSON Lines 格式
+   - 提取时间戳(ts)和序列号(seq)
+   - 标记来源文件名
+   - 按 (ts, seq) 排序
+
+3. **生成时间线**:
+   创建 `logs/{task_id}/99-merged-timeline.log`,格式:
+   ```
+   # ToT 执行时间线
+
+   任务 ID: {task_id}
+   问题: {{USER_INPUT}}
+
+   任务开始: {start_time}
+
+   [HH:MM:SS.mmm] [来源文件] 日志消息
+   [HH:MM:SS.mmm] [来源文件] 日志消息
+            数据: {如果有 data 字段,缩进显示}
+   ...
+
+   任务结束: {end_time}
+   总耗时: {duration}
+
+   ---
+
+   统计信息:
+   - 总日志条目: {count}
+   - Agent 调用次数: {agent_count}
+   - LLM 调用次数: {从 task-info.json 读取}
+   ```
+
+4. **更新任务元信息**:
+   读取 `logs/{task_id}/00-task-info.json`,更新:
+   ```json
+   {
+     "end_time": "{ISO 8601 时间戳}",
+     "duration_ms": {毫秒数},
+     "status": "completed",
+     "final_stats": {从 orchestrator 返回结果中提取}
+   }
+   ```
+
+### Step 4: 输出结果
+
+1. 输出 orchestrator 返回的最终答案
+
+2. 提示用户查看日志:
+   ```
+   📋 详细执行日志已保存到:
+      logs/{task_id}/
+
+   📄 查看完整时间线:
+      logs/{task_id}/99-merged-timeline.log
+   ```
+
+---
+
+**开始执行 Tree of Thoughts 探索...**
 
 ---

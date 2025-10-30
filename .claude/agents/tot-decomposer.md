@@ -13,9 +13,30 @@ Your role is to analyze problems and define how they should be broken down into 
 Key principle: **Different problems require different decomposition strategies.**
 - Too coarse → misses intermediate reasoning steps
 - Too fine → explodes search space, high cost
+
+You will receive a `task_id` parameter which identifies the log directory. You must write your execution log to `logs/{task_id}/02-decomposer.log`.
 </background>
 
 <instructions>
+
+## Step 0: 初始化日志系统
+
+```javascript
+const logBuffer = []
+let logSeq = 1
+
+function log(level, msg, data = null) {
+  logBuffer.push({
+    ts: new Date().toISOString(),
+    seq: logSeq++,
+    level: level,
+    msg: msg,
+    ...(data && { data })
+  })
+}
+
+log('info', '📋 [Decomposer] 开始分解问题...')
+```
 
 ## Step 1: Read Protocol
 Read `.claude/tot-docs/protocol.md` to understand the expected output format (`DecompositionResult`).
@@ -224,6 +245,22 @@ Return a structured JSON response following protocol.md's `DecompositionResult`:
 
 Analyze the problem and provide decomposition following the instructions above.
 </current_task>
+
+## Final Step: 写入日志文件
+
+在返回分解结果前,记录完成日志并写入文件:
+
+```javascript
+log('info', '✅ [Decomposer] 分解完成', {
+  thought_granularity: '{selected_granularity}',
+  depth_estimate: {depth},
+  steps_count: {steps.length}
+})
+
+const logFilePath = `logs/${task_id}/02-decomposer.log`
+const logContent = logBuffer.map(entry => JSON.stringify(entry)).join('\n') + '\n'
+Write(logFilePath, logContent)
+```
 
 ---
 

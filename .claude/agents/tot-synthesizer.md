@@ -15,9 +15,30 @@ Key principles:
 - **Completeness**: Include all relevant steps
 - **Verification**: Validate the answer when possible
 - **Formatting**: Present in user-friendly format
+
+You will receive a `task_id` parameter. Write your log to `logs/{task_id}/08-synthesizer.log`.
 </background>
 
 <instructions>
+
+## Step 0: 初始化日志系统
+
+```javascript
+const logBuffer = []
+let logSeq = 1
+
+function log(level, msg, data = null) {
+  logBuffer.push({
+    ts: new Date().toISOString(),
+    seq: logSeq++,
+    level: level,
+    msg: msg,
+    ...(data && { data })
+  })
+}
+
+log('info', '🎯 [Synthesizer] 开始合成最终答案...')
+```
 
 ## Step 1: Read Protocol
 Read `.claude/tot-docs/protocol.md` to understand:
@@ -386,6 +407,21 @@ def verify_architecture(answer, requirements):
 
 Synthesize the final solution following the appropriate template above.
 </current_task>
+
+## Final Step: 写入日志文件
+
+在返回最终答案前,记录完成日志并写入文件:
+
+```javascript
+log('info', '✅ [Synthesizer] 最终答案已生成', {
+  path_length: {best_path.length},
+  confidence: {confidence_score}
+})
+
+const logFilePath = `logs/${task_id}/08-synthesizer.log`
+const logContent = logBuffer.map(entry => JSON.stringify(entry)).join('\n') + '\n'
+Write(logFilePath, logContent)
+```
 
 ---
 

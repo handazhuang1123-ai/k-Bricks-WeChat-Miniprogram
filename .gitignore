@@ -24,3 +24,7 @@ miniprogram/config/*.js
 
 # Claude Code 本地配置（包含敏感信息）
 .claude/settings.local.json
+
+# Tree of Thoughts 相关文档和日志
+docs/
+logs/
